@@ -89,8 +89,8 @@ subroutine nucleati(  &
    qc, qi, ni_in, rhoair,               &
    so4_num, dst_num, soot_num, subgrid, &
    nuci, onihf, oniimm, onidep, onimey, &
-   wpice, weff, fhom, regm, &
-   oso4_num, odst_num, osoot_num, call_frm_zm_in)
+   wpice, weff, fhom, regm,             &
+   oso4_num, odst_num, osoot_num, call_frm_zm_in,rlat) ! astridbg added rlat
 
    ! Input Arguments
    real(r8), intent(in) :: wbar        ! grid cell mean vertical velocity (m/s)
@@ -123,6 +123,7 @@ subroutine nucleati(  &
 
    ! Optional Arguments
    logical,  intent(in), optional :: call_frm_zm_in ! true if called from ZM convection scheme
+   real(r8),  intent(in), optional :: rlat ! column latitude in radians astridbg
 
    ! Local workspace
    real(r8) :: nihf                      ! nucleated number from homogeneous freezing of so4
@@ -337,10 +338,21 @@ subroutine nucleati(  &
 
    ! deposition/condensation nucleation in mixed clouds (-37<T<0C) (Meyers, 1992)
    if(tc.lt.0._r8 .and. tc.gt.-37._r8 .and. qc.gt.1.e-12_r8) then
-      esl = svp_water(tair)     ! over water in mixed clouds
-      esi = svp_ice(tair)     ! over ice
-      deles = (esl - esi)
-      nimey=1.e-3_r8*exp(12.96_r8*deles/esi - 0.639_r8) 
+if (present(rlat)) then
+         if (rlat*180._r8/3.14159_r8.gt.+66.5_r8) then ! adjustment for Arctic clouds
+            nimey=1.e-3_r8*exp(-0.313_r8*tc - 9.561_r8) ! astridbg
+         else
+            esl = svp_water(tair)     ! over water in mixed clouds
+            esi = svp_ice(tair)     ! over ice
+            deles = (esl - esi)
+            nimey=1.e-3_r8*exp(12.96_r8*deles/esi - 0.639_r8)
+         endif
+      else
+         esl = svp_water(tair)     ! over water in mixed clouds
+         esi = svp_ice(tair)     ! over ice
+         deles = (esl - esi)
+         nimey=1.e-3_r8*exp(12.96_r8*deles/esi - 0.639_r8) 
+      endif
    else
       nimey=0._r8
    endif

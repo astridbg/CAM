@@ -34,6 +34,8 @@ use aerosoldef,     only:  l_dst_a2, l_dst_a3, &
 use modal_aero_data, only: qqcw_get_field
 use const          , only: volumeToNumber
 
+use phys_grid,       only: get_rlat_all_p ! astridbg
+
 implicit none
 private
 save
@@ -333,6 +335,9 @@ subroutine nucleate_ice_oslo_calc( &
    real(r8) :: so4_num_ac
    real(r8) :: so4_num_cr
 
+! latitudes
+   real(r8) :: rlats(pcols) ! latitude in radians for all columns astridbg
+
    !-------------------------------------------------------------------------------
 
    lchnk = state%lchnk
@@ -343,6 +348,8 @@ subroutine nucleate_ice_oslo_calc( &
    qi    => state%q(:,:,cldice_idx)
    ni    => state%q(:,:,numice_idx)
    pmid  => state%pmid
+
+   call get_rlat_all_p(lchnk, ncol, rlats(:ncol)) ! get latitudes astridbg
 
    do k = top_lev, pver
       do i = 1, ncol
@@ -475,7 +482,7 @@ subroutine nucleate_ice_oslo_calc( &
                so4_num, dst_num, soot_num, subgrid(i,k),                 &
                naai(i,k), nihf(i,k), niimm(i,k), nidep(i,k), nimey(i,k), &
                wice(i,k), weff(i,k), fhom(i,k), regm(i,k),               &
-               oso4_num, odst_num, osoot_num)
+               oso4_num, odst_num, osoot_num, .false., rlats(i)) ! astridbg added rlats(i) and .false.
 
             ! Move aerosol used for nucleation from interstial to cloudborne, 
             ! otherwise the same coarse mode aerosols will be available again
