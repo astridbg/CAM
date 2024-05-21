@@ -2090,9 +2090,12 @@ subroutine micro_mg_tend ( &
         ! note that currently mtime = deltat
         !================================================================
 
+      ! jks added temperature dependence on the nimax limiting process to avoid unphysical responses in mixed-phase clouds
         if (do_cldice .and. nitend(i,k).gt.0._r8.and.ni(i,k)+nitend(i,k)*deltat.gt.nimax(i,k)) then
-          nitncons(i,k) = nitncons(i,k) + nitend(i,k)-max(0._r8,(nimax(i,k)-ni(i,k))/deltat) !AL
-           nitend(i,k)=max(0._r8,(nimax(i,k)-ni(i,k))/deltat)
+           if (mgrlats(i)*180._r8/3.14159_r8.lt.+66.66667_r8 .or. t(i,k).lt.235.15_r8) then ! jks only ignore NIMAX in the Arctic for clouds T>-38C
+              nitncons(i,k) = nitncons(i,k) + nitend(i,k)-max(0._r8,(nimax(i,k)-ni(i,k))/deltat) !AL
+              nitend(i,k)=max(0._r8,(nimax(i,k)-ni(i,k))/deltat)
+           end if 
         end if
 
      end do
