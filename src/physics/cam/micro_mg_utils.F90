@@ -904,10 +904,13 @@ end subroutine ice_autoconversion
 !===================================
 
 subroutine immersion_freezing(microp_uniform, t, pgam, lamc, &
-     qcic, ncic, relvar, mnuccc, nnuccc, mgncol)
+     qcic, ncic, relvar, mnuccc, nnuccc, mgncol, mgrlats) ! astridbg added mgrlats
 
   integer, intent(in) :: mgncol
   logical, intent(in) :: microp_uniform
+
+  ! Latitude astridbg
+  real(r8), dimension(mgncol), intent(in) :: mgrlats
 
   ! Temperature
   real(r8), dimension(mgncol), intent(in) :: t
@@ -937,8 +940,9 @@ subroutine immersion_freezing(microp_uniform, t, pgam, lamc, &
      dum(:) = 1._r8
   end if
   do i=1,mgncol
-
-     if (qcic(i) >= qsmall .and. t(i) < 269.15_r8) then
+   
+   ! astridbg added mgrlats condition
+     if (qcic(i) >= qsmall .and. t(i) < 269.15_r8 .and. mgrlats(i)*180._r8/3.14159_r8.lt.+66.5_r8) then 
 
         nnuccc(i) = &
              pi/6._r8*ncic(i)*rising_factorial(pgam(i)+1._r8, 3)* &
@@ -947,7 +951,17 @@ subroutine immersion_freezing(microp_uniform, t, pgam, lamc, &
         mnuccc(i) = dum(i) * nnuccc(i) * &
              pi/6._r8*rhow* &
              rising_factorial(pgam(i)+4._r8, 3)/lamc(i)**3
+     
+     else if (mgrlats(i)*180._r8/3.14159_r8.gt.+66.5_r8 .and. t(i) < 236.15_r8) then
+      ! astridbg t < -37 in the Arctic
+        nnuccc(i) = &
+             pi/6._r8*ncic(i)*rising_factorial(pgam(i)+1._r8, 3)* &
+             bimm*(exp(aimm*(tmelt - t(i)))-1._r8)/lamc(i)**3
 
+        mnuccc(i) = dum(i) * nnuccc(i) * &
+             pi/6._r8*rhow* &
+             rising_factorial(pgam(i)+4._r8, 3)/lamc(i)**3  
+   
      else
         mnuccc(i) = 0._r8
         nnuccc(i) = 0._r8
