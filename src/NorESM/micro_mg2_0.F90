@@ -133,6 +133,8 @@ use micro_mg_utils, only: &
      mi0, &
      rising_factorial
 
+use phys_grid,        only: get_rlat_all_p  !zsm, jks
+
 implicit none
 private
 save
@@ -353,6 +355,7 @@ end subroutine micro_mg_init
 
 subroutine micro_mg_tend ( &
      mgncol,             nlev,               deltatin,           &
+     mgrlats,                                                    & ! zsm, jks 111119
      t,                            q,                            &
      qcn,                          qin,                          &
      ncn,                          nin,                          &
@@ -370,7 +373,7 @@ subroutine micro_mg_tend ( &
      qrtend,                       qstend,                       &
      nrtend,                       nstend,                       &
      effc,               effc_fn,            effi,               &
-     sadice,                       sadsnow,                      &
+     sadice, sadliq,               sadsnow,                      & !zsm, jks
      prect,                        preci,                        &
      nevapr,                       evapsnow,                     &
      am_evp_st,                                                  &
@@ -458,6 +461,7 @@ subroutine micro_mg_tend ( &
   integer,  intent(in) :: mgncol         ! number of microphysics columns
   integer,  intent(in) :: nlev           ! number of layers
   real(r8), intent(in) :: deltatin       ! time step (s)
+  real(r8), intent(in) :: mgrlats(mgncol)! latitude (rad) ! zsm, jks 111119 
   real(r8), intent(in) :: t(mgncol,nlev) ! input temperature (K)
   real(r8), intent(in) :: q(mgncol,nlev) ! input h20 vapor mixing ratio (kg/kg)
 
@@ -513,6 +517,7 @@ subroutine micro_mg_tend ( &
   real(r8), intent(out) :: effc_fn(mgncol,nlev)      ! droplet effective radius, assuming nc = 1.e8 kg-1
   real(r8), intent(out) :: effi(mgncol,nlev)         ! cloud ice effective radius (micron)
   real(r8), intent(out) :: sadice(mgncol,nlev)       ! cloud ice surface area density (cm2/cm3)
+  real(r8), intent(out) :: sadliq(mgncol,nlev)       ! cloud liquid surface area density (cm2/cm3) !zsm, jks
   real(r8), intent(out) :: sadsnow(mgncol,nlev)      ! cloud snow surface area density (cm2/cm3)
   real(r8), intent(out) :: prect(mgncol)             ! surface precip rate (m/s)
   real(r8), intent(out) :: preci(mgncol)             ! cloud ice/snow precip rate (m/s)
@@ -1133,6 +1138,7 @@ subroutine micro_mg_tend ( &
   effc_fn = 10._r8
   effi = 25._r8
   sadice = 0._r8
+  sadliq = 0._r8 !zsm, jks
   sadsnow = 0._r8
   deffi = 50._r8
 
@@ -2989,6 +2995,8 @@ subroutine micro_mg_tend ( &
            end if
 
            effc(i,k) = (pgam(i,k)+3._r8)/lamc(i,k)/2._r8*1.e6_r8
+           sadliq(i,k) = dumnc(i,k)/gamma(pgam(i,k)+1._r8)*pi*gamma(pgam(i,k)+3._r8)/(4._r8*lamc(i,k)**2._r8) !zsm, jks
+
            !assign output fields for shape here
            lamcrad(i,k)=lamc(i,k)
            pgamrad(i,k)=pgam(i,k)
@@ -3013,6 +3021,7 @@ subroutine micro_mg_tend ( &
            lamcrad(i,k)=0._r8
            pgamrad(i,k)=0._r8
            effc_fn(i,k) = 10._r8
+           sadliq(i,k)=0._r8 !zsm, jks
         end if
      enddo
   enddo
@@ -3274,12 +3283,14 @@ end subroutine calc_rercld
 !UTILITIES
 !========================================================================
 
-pure subroutine micro_mg_get_cols(ncol, nlev, top_lev, qcn, qin, &
-     qrn, qsn, mgncol, mgcols)
+subroutine micro_mg_get_cols(lchnk, ncol, nlev, top_lev, qcn, qin, & ! zsm, jks
+     qrn, qsn, mgncol, mgcols, mgrlats) !jks
+! jks 111119, added lchnk as input and mgrlats as output, may revisit later
 
   ! Determines which columns microphysics should operate over by
   ! checking for non-zero cloud water/ice.
 
+  integer, intent(in) :: lchnk     ! zsm, jks 111119
   integer, intent(in) :: ncol      ! Number of columns with meaningful data
   integer, intent(in) :: nlev      ! Number of levels to use
   integer, intent(in) :: top_lev   ! Top level for microphysics
@@ -3291,15 +3302,21 @@ pure subroutine micro_mg_get_cols(ncol, nlev, top_lev, qcn, qin, &
 
   integer, intent(out) :: mgncol   ! Number of columns MG will use
   integer, allocatable, intent(out) :: mgcols(:) ! column indices
+  real(r8), allocatable, intent(out) :: mgrlats(:) ! latitude (rad) for mgcols ! jks 111119
 
   integer :: lev_offset  ! top_lev - 1 (defined here for consistency)
   logical :: ltrue(ncol) ! store tests for each column
 
+  real(r8) :: rlats(ncol) ! degrees in radians for all columns in chunk !zsm, jks
+
   integer :: i, ii ! column indices
 
   if (allocated(mgcols)) deallocate(mgcols)
+  if (allocated(mgrlats)) deallocate(mgrlats) !zsm, jks
 
   lev_offset = top_lev - 1
+
+  call get_rlat_all_p(lchnk, ncol, rlats) !get latitudes for all cols !zsm, jks
 
   ! Using "any" along dimension 2 collapses across levels, but
   ! not columns, so we know if water is present at any level
@@ -3314,11 +3331,13 @@ pure subroutine micro_mg_get_cols(ncol, nlev, top_lev, qcn, qin, &
 
   mgncol = count(ltrue)
   allocate(mgcols(mgncol))
+  allocate(mgrlats(mgncol)) !zsm, jks
   i = 0
   do ii = 1,ncol
      if (ltrue(ii)) then
         i = i + 1
         mgcols(i) = ii
+        mgrlats(i) = rlats(ii) !zsm, jks also save latitude
      end if
   end do
 
