@@ -178,7 +178,7 @@ subroutine phys_ctl_readnl(nlfile)
    call mpi_bcast(history_scwaccm_forcing,     1,                     mpi_logical,   masterprocid, mpicom, ierr)
    call mpi_bcast(do_clubb_sgs,                1,                     mpi_logical,   masterprocid, mpicom, ierr)
    call mpi_bcast(state_debug_checks,          1,                     mpi_logical,   masterprocid, mpicom, ierr)
-   call mpi_bcast(use_hetfrz_classnuc,         1,                     mpi_logical,   masterprocid, mpicom, ierr)
+   ! call mpi_bcast(use_hetfrz_classnuc,         1,                     mpi_logical,   masterprocid, mpicom, ierr) astridbg
    call mpi_bcast(use_gw_oro,                  1,                     mpi_logical,   masterprocid, mpicom, ierr)
    call mpi_bcast(use_gw_front,                1,                     mpi_logical,   masterprocid, mpicom, ierr)
    call mpi_bcast(use_gw_front_igw,            1,                     mpi_logical,   masterprocid, mpicom, ierr)
