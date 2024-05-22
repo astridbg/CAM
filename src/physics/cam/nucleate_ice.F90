@@ -338,7 +338,7 @@ subroutine nucleati(  &
 
    ! deposition/condensation nucleation in mixed clouds (-37<T<0C) (Meyers, 1992)
    if(tc.lt.0._r8 .and. tc.gt.-37._r8 .and. qc.gt.1.e-12_r8) then
-if (present(rlat)) then
+      if (present(rlat)) then
          if (rlat*180._r8/3.14159_r8.gt.+66.5_r8) then ! adjustment for Arctic clouds
             nimey=1.e-3_r8*exp(-0.313_r8*tc - 9.561_r8) ! astridbg
          else

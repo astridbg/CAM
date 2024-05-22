@@ -909,9 +909,6 @@ subroutine immersion_freezing(microp_uniform, t, pgam, lamc, &
   integer, intent(in) :: mgncol
   logical, intent(in) :: microp_uniform
 
-  ! Latitude astridbg
-  real(r8), dimension(mgncol), intent(in) :: mgrlats
-
   ! Temperature
   real(r8), dimension(mgncol), intent(in) :: t
 
@@ -934,6 +931,9 @@ subroutine immersion_freezing(microp_uniform, t, pgam, lamc, &
   real(r8), dimension(mgncol) :: dum
   integer :: i
 
+  ! Latitude astridbg
+  real(r8), dimension(mgncol), intent(in), optional :: mgrlats
+
   if (.not. microp_uniform) then
      dum(:) = var_coef(relvar, 2)
   else
@@ -942,30 +942,47 @@ subroutine immersion_freezing(microp_uniform, t, pgam, lamc, &
   do i=1,mgncol
    
    ! astridbg added mgrlats condition
-     if (qcic(i) >= qsmall .and. t(i) < 269.15_r8 .and. mgrlats(i)*180._r8/3.14159_r8.lt.+66.5_r8) then 
+     if (present (mgrlats)) then
+        if (qcic(i) >= qsmall .and. t(i) < 269.15_r8 .and. mgrlats(i)*180._r8/3.14159_r8.lt.+66.5_r8) then 
 
-        nnuccc(i) = &
-             pi/6._r8*ncic(i)*rising_factorial(pgam(i)+1._r8, 3)* &
-             bimm*(exp(aimm*(tmelt - t(i)))-1._r8)/lamc(i)**3
+           nnuccc(i) = &
+               pi/6._r8*ncic(i)*rising_factorial(pgam(i)+1._r8, 3)* &
+               bimm*(exp(aimm*(tmelt - t(i)))-1._r8)/lamc(i)**3
 
-        mnuccc(i) = dum(i) * nnuccc(i) * &
-             pi/6._r8*rhow* &
-             rising_factorial(pgam(i)+4._r8, 3)/lamc(i)**3
-     
-     else if (mgrlats(i)*180._r8/3.14159_r8.gt.+66.5_r8 .and. t(i) < 236.15_r8) then
-      ! astridbg t < -37 in the Arctic
-        nnuccc(i) = &
-             pi/6._r8*ncic(i)*rising_factorial(pgam(i)+1._r8, 3)* &
-             bimm*(exp(aimm*(tmelt - t(i)))-1._r8)/lamc(i)**3
+           mnuccc(i) = dum(i) * nnuccc(i) * &
+               pi/6._r8*rhow* &
+               rising_factorial(pgam(i)+4._r8, 3)/lamc(i)**3
+      
+        else if (qcic(i) >= qsmall .and. t(i) < 236.15_r8 .and. mgrlats(i)*180._r8/3.14159_r8.gt.+66.5_r8) then
+         ! astridbg t < -37 in the Arctic
+           nnuccc(i) = &
+               pi/6._r8*ncic(i)*rising_factorial(pgam(i)+1._r8, 3)* &
+               bimm*(exp(aimm*(tmelt - t(i)))-1._r8)/lamc(i)**3
 
-        mnuccc(i) = dum(i) * nnuccc(i) * &
-             pi/6._r8*rhow* &
-             rising_factorial(pgam(i)+4._r8, 3)/lamc(i)**3  
-   
+           mnuccc(i) = dum(i) * nnuccc(i) * &
+               pi/6._r8*rhow* &
+               rising_factorial(pgam(i)+4._r8, 3)/lamc(i)**3  
+      
+        else
+           mnuccc(i) = 0._r8
+           nnuccc(i) = 0._r8
+        end if ! qcic > qsmall and t < 4 deg C
      else
-        mnuccc(i) = 0._r8
-        nnuccc(i) = 0._r8
-     end if ! qcic > qsmall and t < 4 deg C
+        if (qcic(i) >= qsmall .and. t(i) < 269.15_r8) then 
+
+           nnuccc(i) = &
+               pi/6._r8*ncic(i)*rising_factorial(pgam(i)+1._r8, 3)* &
+               bimm*(exp(aimm*(tmelt - t(i)))-1._r8)/lamc(i)**3
+
+           mnuccc(i) = dum(i) * nnuccc(i) * &
+               pi/6._r8*rhow* &
+               rising_factorial(pgam(i)+4._r8, 3)/lamc(i)**3
+      
+        else
+           mnuccc(i) = 0._r8
+           nnuccc(i) = 0._r8
+        end if
+     end if
   enddo
 
 end subroutine immersion_freezing
