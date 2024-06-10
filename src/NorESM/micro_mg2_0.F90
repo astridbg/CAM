@@ -1579,6 +1579,9 @@ subroutine micro_mg_tend ( &
 
      if (do_cldice) then
         call secondary_ice_production(t(:,k), psacws(:,k), msacwi(:,k), nsacwi(:,k), mgncol)
+        where (nsacwi(:,k)*deltat.gt.1.e6_r8) ! jks limit ni contributions from secondary ice processes to 1000 (1/m3/s)
+           nsacwi(:,k) = 1.e6_r8/deltat !
+        end where
      else
         nsacwi(:,k) = 0.0_r8
         msacwi(:,k) = 0.0_r8
