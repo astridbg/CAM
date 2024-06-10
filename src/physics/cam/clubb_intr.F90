@@ -2337,6 +2337,7 @@ end subroutine clubb_init_cnst
       call pbuf_get_field(pbuf, dnifzm_idx, dnifzm)
    end if
    
+   ! jks mods to eliminate ice entrainment
    do k=1,pver
       do i=1,ncol
          if( state1%t(i,k) > 268.15_r8 ) then
@@ -2344,7 +2345,8 @@ end subroutine clubb_init_cnst
          elseif ( state1%t(i,k) < 238.15_r8 ) then
             dum1 = 1.0_r8
          else
-            dum1 = ( 268.15_r8 - state1%t(i,k) ) / 30._r8 
+            dum1 = 0.0_r8 ! jks 02012020 only entrain as liquid for T > -35C
+!            dum1 = ( 268.15_r8 - state1%t(i,k) ) / 30._r8 
          endif
 
          if (zmconv_microp) then
