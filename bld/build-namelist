@@ -872,6 +872,13 @@ if ($cfg->get('cosp')) {
 }
 
 
+# Get slf_isotherms
+
+if (!defined $nl->get_value('slf_isotherms')) {
+    add_default($nl,'slf_isotherms')
+}
+
+
 # Constituents
 # ============
 
