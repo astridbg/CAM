@@ -390,7 +390,7 @@ subroutine micro_mg_tend ( &
      qrtend,                       qstend,                       &
      nrtend,                       nstend,                       &
      effc,               effc_fn,            effi,               &
-     sadice,                       sadsnow,                      &
+     sadice, sadliq,               sadsnow,                      &
      prect,                        preci,                        &
      nevapr,                       evapsnow,                     &
      am_evp_st,                                                  &
