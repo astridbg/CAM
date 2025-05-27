@@ -613,6 +613,44 @@ subroutine micro_mg_cam_register
       call pbuf_add_field('NRAIN',   'global',dtype_r8,(/pcols,pver/), nrain_idx)
       call pbuf_add_field('NSNOW',   'global',dtype_r8,(/pcols,pver/), nsnow_idx)
    end if
+   
+   ! SLF OUTPUT !zsm, jks 111119
+   ! Fill in info on new dimensions
+
+   do t=1,nisotherms_mpc
+      isotherms_mpc_midpoints(t)=273.15_r8-5._r8*(nisotherms_mpc-t)
+      isotherms_mpc_bounds(1,t)=isotherms_mpc_midpoints(t)-1.0_r8
+      isotherms_mpc_bounds(2,t)=isotherms_mpc_midpoints(t)+1.0_r8
+   end do
+
+   call add_hist_coord('isotherms_mpc', nisotherms_mpc, 'mixed-phase cloud isotherms (data within 1.0C)',  &
+           'C', isotherms_mpc_midpoints, bounds_name='isotherms_mpc_bounds', bounds=isotherms_mpc_bounds)
+
+   slfbins_midpoints   = (/ 5.e-31_r8, .00005_r8, .00055_r8, .0055_r8, .055_r8, .5_r8, &
+                            .945_r8, .9945_r8, .99945_r8, .99995_r8,       1._r8-5.e-31 /)
+   slfbins_bounds(1,:) = (/ 0._r8,     1.e-30_r8, .0001_r8,  .001_r8,  .01_r8, .1_r8,  &
+                            .9_r8,   .99_r8,   .999_r8,   .9999_r8,        1._r8-1.e-30_r8 /)
+   slfbins_bounds(2,:) = (/ 1.e-30_r8, .0001_r8,  .001_r8,   .01_r8,   .1_r8, .9_r8,   &
+                            .99_r8,  .999_r8,  .9999_r8,  1._r8-1.e-30_r8, 1._r8 /)
+
+   call add_hist_coord('slfbins', nslfbins, 'supercooled liquid fraction bins',  &
+           'C', slfbins_midpoints, bounds_name='slfbins_bounds', bounds=slfbins_bounds)
+
+   precipbins_bounds(1,1) = 0._r8
+   precipbins_bounds(2,1) = 1.e-3_r8
+   precipbins_midpoints(1) = 5.e-4_r8
+   do pr=2,nprecipbins
+      precipbins_bounds(1,pr)= precipbins_bounds(2,pr-1)
+      if (pr.ne.nprecipbins) then
+         precipbins_bounds(2,pr)=precipbins_bounds(1,pr) * 10._r8**(5._r8/(nprecipbins-2._r8))
+      else
+         precipbins_bounds(2,pr)=precipbins_bounds(1,pr)*1.e10_r8
+      end if
+      precipbins_midpoints(pr)=(precipbins_bounds(1,pr)+precipbins_bounds(2,pr))/2._r8
+   end do
+
+   call add_hist_coord('precipbins', nprecipbins, 'precipitation rate bins', &
+           'C', precipbins_midpoints, bounds_name='precipbins_bounds', bounds=precipbins_bounds)
 
 end subroutine micro_mg_cam_register
 
@@ -793,43 +831,6 @@ subroutine micro_mg_cam_init(pbuf2d)
    !          being monthly averages that include zeros at times/locations where
    !          no cloud detected on isotherm
    !          i.e. SLF_ISOTM = SLFXCLD_ISOTM / CLD_ISOTM
-
-   ! Fill in info on new dimensions
-
-   do t=1,nisotherms_mpc
-      isotherms_mpc_midpoints(t)=273.15_r8-5._r8*(nisotherms_mpc-t)
-      isotherms_mpc_bounds(1,t)=isotherms_mpc_midpoints(t)-1.0_r8
-      isotherms_mpc_bounds(2,t)=isotherms_mpc_midpoints(t)+1.0_r8
-   end do
-
-   call add_hist_coord('isotherms_mpc', nisotherms_mpc, 'mixed-phase cloud isotherms (data within 1.0C)',  &
-           'C', isotherms_mpc_midpoints, bounds_name='isotherms_mpc_bounds', bounds=isotherms_mpc_bounds)
-
-   slfbins_midpoints   = (/ 5.e-31_r8, .00005_r8, .00055_r8, .0055_r8, .055_r8, .5_r8, &
-                            .945_r8, .9945_r8, .99945_r8, .99995_r8,       1._r8-5.e-31 /)
-   slfbins_bounds(1,:) = (/ 0._r8,     1.e-30_r8, .0001_r8,  .001_r8,  .01_r8, .1_r8,  &
-                            .9_r8,   .99_r8,   .999_r8,   .9999_r8,        1._r8-1.e-30_r8 /)
-   slfbins_bounds(2,:) = (/ 1.e-30_r8, .0001_r8,  .001_r8,   .01_r8,   .1_r8, .9_r8,   &
-                            .99_r8,  .999_r8,  .9999_r8,  1._r8-1.e-30_r8, 1._r8 /)
-
-   call add_hist_coord('slfbins', nslfbins, 'supercooled liquid fraction bins',  &
-           'C', slfbins_midpoints, bounds_name='slfbins_bounds', bounds=slfbins_bounds)
-
-   precipbins_bounds(1,1) = 0._r8
-   precipbins_bounds(2,1) = 1.e-3_r8
-   precipbins_midpoints(1) = 5.e-4_r8
-   do pr=2,nprecipbins
-      precipbins_bounds(1,pr)= precipbins_bounds(2,pr-1)
-      if (pr.ne.nprecipbins) then
-         precipbins_bounds(2,pr)=precipbins_bounds(1,pr) * 10._r8**(5._r8/(nprecipbins-2._r8))
-      else
-         precipbins_bounds(2,pr)=precipbins_bounds(1,pr)*1.e10_r8
-      end if
-      precipbins_midpoints(pr)=(precipbins_bounds(1,pr)+precipbins_bounds(2,pr))/2._r8
-   end do
-
-   call add_hist_coord('precipbins', nprecipbins, 'precipitation rate bins', &
-           'C', precipbins_midpoints, bounds_name='precipbins_bounds', bounds=precipbins_bounds)
 
    ! Define new variables
 
