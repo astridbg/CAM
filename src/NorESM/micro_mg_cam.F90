@@ -429,6 +429,8 @@ subroutine micro_mg_cam_register
 
    logical :: prog_modal_aero
    logical :: use_subcol_microp  ! If true, then are using subcolumns in microphysics
+   integer :: t, s, pr             ! loop through bins of temperature, slf,
+                                   ! and precip  !zsm, jks
 
    call phys_getopts(use_subcol_microp_out    = use_subcol_microp, &
                      prog_modal_aero_out      = prog_modal_aero)
