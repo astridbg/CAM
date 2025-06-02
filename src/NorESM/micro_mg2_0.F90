@@ -373,6 +373,7 @@ end subroutine micro_mg_init
 
 subroutine micro_mg_tend ( &
      mgncol,             nlev,               deltatin,           &
+     mgrlats,                                                    & ! astridbg
      t,                            q,                            &
      qcn,                          qin,                          &
      ncn,                          nin,                          &
@@ -1618,7 +1619,7 @@ subroutine micro_mg_tend ( &
            !----------------------------------------------
 
            call immersion_freezing(microp_uniform, t(:,k), pgam(:,k), lamc(:,k), &
-                qcic(1:mgncol,k), ncic(:,k), relvar(:,k), mnuccc(:,k), nnuccc(:,k), mgncol)
+                qcic(1:mgncol,k), ncic(:,k), relvar(:,k), mnuccc(:,k), nnuccc(:,k), mgncol, mgrlats) ! astridbg added mgrlats
 
            ! make sure number of droplets frozen does not exceed available ice nuclei concentration
            ! this prevents 'runaway' droplet freezing
@@ -1634,7 +1635,7 @@ subroutine micro_mg_tend ( &
            mdust = size(rndst,3)
            call contact_freezing(microp_uniform, t(:,k), p(:,k), rndst(:,k,:), &
                 nacon(:,k,:), pgam(:,k), lamc(:,k), qcic(1:mgncol,k), ncic(:,k), &
-                relvar(:,k), mnucct(:,k), nnucct(:,k), mgncol, mdust)
+                relvar(:,k), mnucct(:,k), nnucct(:,k), mgncol, mdust, mgrlats) ! astridbg added mgrlats
 
            mnudep(:,k)=0._r8
            nnudep(:,k)=0._r8
