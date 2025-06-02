@@ -32,6 +32,8 @@ use cam_abortutils, only: endrun
 
 use nucleate_ice,   only: nucleati_init, nucleati
 
+use phys_grid,      only: get_rlat_all_p ! astrid
+
 
 implicit none
 private
@@ -475,6 +477,9 @@ subroutine nucleate_ice_cam_calc( &
    real(r8) :: nimey(pcols,pver) !output number conc of ice nuclei due to meyers deposition (1/m3)
    real(r8) :: regm(pcols,pver)  !output temperature thershold for nucleation regime
 
+   ! latitudes
+   real(r8) :: rlats(pcols) ! latitude in radians for all columns astridbg
+
 
    !-------------------------------------------------------------------------------
 
@@ -486,6 +491,8 @@ subroutine nucleate_ice_cam_calc( &
    qi    => state%q(:,:,cldice_idx)
    ni    => state%q(:,:,numice_idx)
    pmid  => state%pmid
+
+   call get_rlat_all_p(lchnk, ncol, rlats(:ncol)) ! get latitudes astridbg
 
    do k = top_lev, pver
       do i = 1, ncol
@@ -723,7 +730,7 @@ subroutine nucleate_ice_cam_calc( &
                so4_num, dst_num, soot_num, subgrid(i,k),                 &
                naai(i,k), nihf(i,k), niimm(i,k), nidep(i,k), nimey(i,k), &
                wice(i,k), weff(i,k), fhom(i,k), regm(i,k),               &
-               oso4_num, odst_num, osoot_num)
+               oso4_num, odst_num, osoot_num, .false., rlats(i)) ! astridbg added rlats(i) and .false.
 
             ! Move aerosol used for nucleation from interstial to cloudborne, 
             ! otherwise the same coarse mode aerosols will be available again
