@@ -133,6 +133,8 @@ use micro_mg_utils, only: &
      mi0, &
      rising_factorial
 
+use phys_grid,        only: get_rlat_all_p  !zsm, jks astridbg
+
 !RaFSIP GS/PG
 use module_random_forests, only: rafsip_on, jbt
 use module_random_forests, only: max_nodes1, leftchild1, rightchild1, splitfeat1
@@ -3708,12 +3710,13 @@ end subroutine calc_rercld
 !UTILITIES
 !========================================================================
 
-pure subroutine micro_mg_get_cols(ncol, nlev, top_lev, qcn, qin, &
-     qrn, qsn, mgncol, mgcols)
+pure subroutine micro_mg_get_cols(lchnk, ncol, nlev, top_lev, qcn, qin, &
+     qrn, qsn, mgncol, mgcols, mgrlats) ! zsm, jks added lchunk and mgrlats astridbg
 
   ! Determines which columns microphysics should operate over by
   ! checking for non-zero cloud water/ice.
 
+  integer, intent(in) :: lchnk     ! zsm, jks astridbg
   integer, intent(in) :: ncol      ! Number of columns with meaningful data
   integer, intent(in) :: nlev      ! Number of levels to use
   integer, intent(in) :: top_lev   ! Top level for microphysics
@@ -3725,15 +3728,21 @@ pure subroutine micro_mg_get_cols(ncol, nlev, top_lev, qcn, qin, &
 
   integer, intent(out) :: mgncol   ! Number of columns MG will use
   integer, allocatable, intent(out) :: mgcols(:) ! column indices
+  real(r8), allocatable, intent(out) :: mgrlats(:) ! latitude (rad) for mgcols ! jks 111119 astridbg
 
   integer :: lev_offset  ! top_lev - 1 (defined here for consistency)
   logical :: ltrue(ncol) ! store tests for each column
 
+  real(r8) :: rlats(ncol) ! degrees in radians for all columns in chunk !zsm, jks astridbg
+
   integer :: i, ii ! column indices
 
   if (allocated(mgcols)) deallocate(mgcols)
+  if (allocated(mgrlats)) deallocate(mgrlats) !zsm, jks astridbg
 
   lev_offset = top_lev - 1
+
+  call get_rlat_all_p(lchnk, ncol, rlats) !get latitudes for all cols !zsm, jks astridbg
 
   ! Using "any" along dimension 2 collapses across levels, but
   ! not columns, so we know if water is present at any level
@@ -3748,11 +3757,13 @@ pure subroutine micro_mg_get_cols(ncol, nlev, top_lev, qcn, qin, &
 
   mgncol = count(ltrue)
   allocate(mgcols(mgncol))
+  allocate(mgrlats(mgncol)) !zsm, jks astridbg
   i = 0
   do ii = 1,ncol
      if (ltrue(ii)) then
         i = i + 1
         mgcols(i) = ii
+        mgrlats(i) = rlats(ii) !zsm, jks also save latitude astridbg
      end if
   end do
 
