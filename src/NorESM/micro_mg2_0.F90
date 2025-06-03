@@ -484,6 +484,7 @@ subroutine micro_mg_tend ( &
   integer,  intent(in) :: mgncol         ! number of microphysics columns
   integer,  intent(in) :: nlev           ! number of layers
   real(r8), intent(in) :: deltatin       ! time step (s)
+  real(r8), intent(in) :: mgrlats(mgncol)! latitude (rad) ! zsm, jks astridbg
   real(r8), intent(in) :: t(mgncol,nlev) ! input temperature (K)
   real(r8), intent(in) :: q(mgncol,nlev) ! input h20 vapor mixing ratio (kg/kg)
 
