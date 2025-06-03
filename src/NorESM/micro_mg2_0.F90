@@ -3710,7 +3710,7 @@ end subroutine calc_rercld
 !UTILITIES
 !========================================================================
 
-pure subroutine micro_mg_get_cols(lchnk, ncol, nlev, top_lev, qcn, qin, &
+subroutine micro_mg_get_cols(lchnk, ncol, nlev, top_lev, qcn, qin, &
      qrn, qsn, mgncol, mgcols, mgrlats) ! zsm, jks added lchunk and mgrlats astridbg
 
   ! Determines which columns microphysics should operate over by
