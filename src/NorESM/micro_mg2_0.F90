@@ -373,7 +373,6 @@ end subroutine micro_mg_init
 
 subroutine micro_mg_tend ( &
      mgncol,             nlev,               deltatin,           &
-     mgrlats,                                                    & ! astridbg
      t,                            q,                            &
      qcn,                          qin,                          &
      ncn,                          nin,                          &
@@ -484,7 +483,7 @@ subroutine micro_mg_tend ( &
   integer,  intent(in) :: mgncol         ! number of microphysics columns
   integer,  intent(in) :: nlev           ! number of layers
   real(r8), intent(in) :: deltatin       ! time step (s)
-  real(r8), intent(in) :: mgrlats(mgncol)! latitude (rad) ! zsm, jks astridbg
+  !real(r8), intent(in) :: mgrlats(mgncol)! latitude (rad) ! zsm, jks astridbg
   real(r8), intent(in) :: t(mgncol,nlev) ! input temperature (K)
   real(r8), intent(in) :: q(mgncol,nlev) ! input h20 vapor mixing ratio (kg/kg)
 
@@ -1620,7 +1619,7 @@ subroutine micro_mg_tend ( &
            !----------------------------------------------
 
            call immersion_freezing(microp_uniform, t(:,k), pgam(:,k), lamc(:,k), &
-                qcic(1:mgncol,k), ncic(:,k), relvar(:,k), mnuccc(:,k), nnuccc(:,k), mgncol, mgrlats) ! astridbg added mgrlats
+                qcic(1:mgncol,k), ncic(:,k), relvar(:,k), mnuccc(:,k), nnuccc(:,k), mgncol) ! astridbg added mgrlats
 
            ! make sure number of droplets frozen does not exceed available ice nuclei concentration
            ! this prevents 'runaway' droplet freezing
@@ -1636,7 +1635,7 @@ subroutine micro_mg_tend ( &
            mdust = size(rndst,3)
            call contact_freezing(microp_uniform, t(:,k), p(:,k), rndst(:,k,:), &
                 nacon(:,k,:), pgam(:,k), lamc(:,k), qcic(1:mgncol,k), ncic(:,k), &
-                relvar(:,k), mnucct(:,k), nnucct(:,k), mgncol, mdust, mgrlats) ! astridbg added mgrlats
+                relvar(:,k), mnucct(:,k), nnucct(:,k), mgncol, mdust) ! astridbg added mgrlats
 
            mnudep(:,k)=0._r8
            nnudep(:,k)=0._r8

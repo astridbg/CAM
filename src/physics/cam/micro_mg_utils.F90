@@ -970,21 +970,21 @@ subroutine immersion_freezing(microp_uniform, t, pgam, lamc, &
       
         end if ! qcic > qsmall and t < 4 deg C
      
-     else
-        if (qcic(i) >= qsmall .and. t(i) < 269.15_r8) then 
+     else !astrid commented out and deindented mnuccc and nnuccc
+        !if (qcic(i) >= qsmall .and. t(i) < 269.15_r8) then 
 
-           nnuccc(i) = &
-               pi/6._r8*ncic(i)*rising_factorial(pgam(i)+1._r8, 3)* &
-               bimm*(exp(aimm*(tmelt - t(i)))-1._r8)/lamc(i)**3
-
-           mnuccc(i) = dum(i) * nnuccc(i) * &
-               pi/6._r8*rhow* &
-               rising_factorial(pgam(i)+4._r8, 3)/lamc(i)**3
+        !   nnuccc(i) = &
+        !       pi/6._r8*ncic(i)*rising_factorial(pgam(i)+1._r8, 3)* &
+        !       bimm*(exp(aimm*(tmelt - t(i)))-1._r8)/lamc(i)**3
+        ! 
+        !   mnuccc(i) = dum(i) * nnuccc(i) * &
+        !       pi/6._r8*rhow* &
+        !       rising_factorial(pgam(i)+4._r8, 3)/lamc(i)**3
       
-        else
-           mnuccc(i) = 0._r8
-           nnuccc(i) = 0._r8
-        end if ! qcic > qsmall and t < 4 deg C
+        !else 
+        mnuccc(i) = 0._r8
+        nnuccc(i) = 0._r8
+        !end if ! qcic > qsmall and t < 4 deg C
      end if
   enddo
 
@@ -1107,42 +1107,42 @@ subroutine contact_freezing (microp_uniform, t, p, rndst, nacon, &
 
         end if ! qcic > qsmall and t < 4 deg C
 
-     else
+     else !astridbg commmented out and deindented mnucct and nnucct
 
-        if (qcic(i) >= qsmall .and. t(i) < 269.15_r8) then
+        !if (qcic(i) >= qsmall .and. t(i) < 269.15_r8) then
 
-           if (.not. microp_uniform) then
-              dum = var_coef(relvar(i), 4._r8/3._r8)
-              dum1 = var_coef(relvar(i), 1._r8/3._r8)
-           else
-              dum = 1._r8
-              dum1 = 1._r8
-           endif
+         !  if (.not. microp_uniform) then
+         !     dum = var_coef(relvar(i), 4._r8/3._r8)
+         !     dum1 = var_coef(relvar(i), 1._r8/3._r8)
+         !  else
+         !     dum = 1._r8
+         !     dum1 = 1._r8
+         !  endif
 
-           tcnt=(270.16_r8-t(i))**1.3_r8
-           viscosity = 1.8e-5_r8*(t(i)/298.0_r8)**0.85_r8    ! Viscosity (kg/m/s)
-           mfp = 2.0_r8*viscosity/ &                         ! Mean free path (m)
-                        (p(i)*sqrt( 8.0_r8*28.96e-3_r8/(pi*8.314409_r8*t(i)) ))
+         !  tcnt=(270.16_r8-t(i))**1.3_r8
+         !  viscosity = 1.8e-5_r8*(t(i)/298.0_r8)**0.85_r8    ! Viscosity (kg/m/s)
+         !  mfp = 2.0_r8*viscosity/ &                         ! Mean free path (m)
+         !               (p(i)*sqrt( 8.0_r8*28.96e-3_r8/(pi*8.314409_r8*t(i)) ))
 
-           ! Note that these two are vectors.
-           nslip = 1.0_r8+(mfp/rndst(i,:))*(1.257_r8+(0.4_r8*exp(-(1.1_r8*rndst(i,:)/mfp))))! Slip correction factor
+         !  ! Note that these two are vectors.
+         !  nslip = 1.0_r8+(mfp/rndst(i,:))*(1.257_r8+(0.4_r8*exp(-(1.1_r8*rndst(i,:)/mfp))))! Slip correction factor
 
-           ndfaer = 1.381e-23_r8*t(i)*nslip/(6._r8*pi*viscosity*rndst(i,:))  ! aerosol diffusivity (m2/s)
+         !  ndfaer = 1.381e-23_r8*t(i)*nslip/(6._r8*pi*viscosity*rndst(i,:))  ! aerosol diffusivity (m2/s)
 
-           contact_factor = dot_product(ndfaer,nacon(i,:)*tcnt) * pi * &
-                 ncic(i) * (pgam(i) + 1._r8) / lamc(i)
+         !  contact_factor = dot_product(ndfaer,nacon(i,:)*tcnt) * pi * &
+         !        ncic(i) * (pgam(i) + 1._r8) / lamc(i)
 
-           mnucct(i) = dum * contact_factor * &
-                 pi/3._r8*rhow*rising_factorial(pgam(i)+2._r8, 3)/lamc(i)**3
+        !   mnucct(i) = dum * contact_factor * &
+        !         pi/3._r8*rhow*rising_factorial(pgam(i)+2._r8, 3)/lamc(i)**3
 
-           nnucct(i) =  dum1 * 2._r8 * contact_factor
+        !   nnucct(i) =  dum1 * 2._r8 * contact_factor
 
-        else
+        !else
 
-           mnucct(i)=0._r8
-           nnucct(i)=0._r8
+        mnucct(i)=0._r8
+        nnucct(i)=0._r8
 
-        end if ! qcic > qsmall and t < 4 deg C
+        !end if ! qcic > qsmall and t < 4 deg C
      end if
   end do
 
