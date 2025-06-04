@@ -430,6 +430,9 @@ subroutine micro_mg_cam_register
    logical :: prog_modal_aero
    logical :: use_subcol_microp  ! If true, then are using subcolumns in microphysics
 
+   integer :: t, s, pr             ! loop through bins of temperature, slf,
+                                   ! and precip  !zsm, jks
+
    call phys_getopts(use_subcol_microp_out    = use_subcol_microp, &
                      prog_modal_aero_out      = prog_modal_aero)
 
@@ -721,9 +724,6 @@ subroutine micro_mg_cam_init(pbuf2d)
    integer :: budget_histfile      ! output history file number for budget fields
    integer :: ierr
    character(128) :: errstring     ! return status (non-blank for error return)
-
-   integer :: t, s, pr             ! loop through bins of temperature, slf,
-                                   ! and precip  !zsm, jks
 
    !-----------------------------------------------------------------------
 
